@@ -62,6 +62,25 @@ app.post("/register", async (req, res) => {
 		res.send(error);
 	}
 });
+app.post("/login", async (req, res) => {
+	const { email, password } = req.body;
 
+	try {
+		const user = await connectToDb
+			.collection("users")
+			.findOne({ email: email });
+		if (!user) {
+			return res.status(401).send({ message: "This email is not registered" });
+		}
+		if (user && bcrypt.compareSync( password, user.password)){
+			return res.status(201).send({message:"Logging in"})
+		} else {
+			return res.status(401).send({ message: "Password doesn't match"});
+		}
+
+	} catch (error) {
+		res.send(error);
+	}
+});
 
 app.listen(5000);
