@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import joi from "joi";
 import { postRegistration , postLogin } from "./controllers/auth.controller.js"
 import { getReceipt, postEntrance, postExpenses } from "./controllers/receipts.controller.js";
 
