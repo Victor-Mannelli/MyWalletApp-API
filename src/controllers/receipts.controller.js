@@ -2,19 +2,29 @@ import { connectToDb } from "../database/db.js";
 import { transactionScheme } from "../models/transaction.model.js";
 
 export async function getReceipt(req, res) {
+	const { authorization } = req.headers;
 	try {
-		const transitions = await connectToDb
-			.collection("receipts")
-			.find()
-			.toArray();
-		res.send(transitions);
+		const token = authorization?.replace("Bearer ", "");
+		if (!token) return res.status(401).send({message: "missing authorization bearer"});
+
+		const session = await connectToDb.collection("sessions").findOne({ token });
+		if (session) {
+			const transactions = await connectToDb
+				.collection("receipts")
+				.find({ token: session.token })
+				.toArray();
+
+			return res.send(transactions);
+		} else {
+			return res.sendStatus(401);
+		}
 	} catch (error) {
-		console.log(error);
+		res.status(500).send(error);
 	}
 }
 export async function postTransactions(req, res) {
-	const transitionInfo = req.body;
-	const validation = transactionScheme.validate(transitionInfo, {
+	const transactionsInfo = req.body;
+	const validation = transactionScheme.validate(transactionsInfo, {
 		abortEarly: false,
 	});
 	try {
@@ -25,9 +35,10 @@ export async function postTransactions(req, res) {
 		}
 
 		await connectToDb.collection("receipts").insertOne({
-			price: transitionInfo.price,
-			description: transitionInfo.description,
-			type: transitionInfo.type
+			token: transactionsInfo.token,
+			price: transactionsInfo.price,
+			description: transactionsInfo.description,
+			type: transactionsInfo.type,
 		});
 		res.status(201).send({ message: "New entrance added" });
 	} catch (error) {

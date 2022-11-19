@@ -1,5 +1,5 @@
 import { loginScheme } from "../models/login.model.js";
-import { regisScheme } from "../models/registration.model.js"
+import { regisScheme } from "../models/registration.model.js";
 import { connectToDb } from "../database/db.js";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
@@ -22,13 +22,20 @@ export async function postLogin(req, res) {
 			return res.status(401).send({ message: "This email is not registered" });
 		}
 		if (user && bcrypt.compareSync(userInformation.password, user.password)) {
-            const token = uuid();
-			await connectToDb.collection("sessions").insertOne({
-                userId: user._id,
-				token,
-			});
+			const userSession = await connectToDb
+				.collection("sessions")
+				.findOne({ userId: user._id });
+			if (userSession) {
+				return res.status(201).send({ message: "Logged in", token: userSession.token, user });
+			} else {
+				const token = uuid();
+				await connectToDb.collection("sessions").insertOne({
+					userId: user._id,
+					token,
+				});
 
-			return res.status(201).send({ message: "Logged in", token, user});
+				return res.status(201).send({ message: "Logged in", token, user });
+			}
 		} else {
 			return res.status(401).send({ message: "Password doesn't match" });
 		}
