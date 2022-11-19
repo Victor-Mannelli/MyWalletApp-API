@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { postRegistration , postLogin } from "./controllers/auth.controller.js"
-import { getReceipt, postEntrance, postExpenses } from "./controllers/receipts.controller.js";
+import { getReceipt, postTransactions } from "./controllers/receipts.controller.js";
 
 const app = express();
 app.use(cors());
@@ -13,8 +13,6 @@ app.post("/login", postLogin);
 
 app.get("/receipt", getReceipt)
 
-app.post("/entrance", postEntrance)
-
-app.post("/expense", postExpenses)
+app.post("/transactions", postTransactions)
 
 app.listen(5000);
