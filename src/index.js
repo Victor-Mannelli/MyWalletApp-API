@@ -1,18 +1,10 @@
 import express from "express";
 import cors from "cors";
-import { postRegistration , postLogin } from "./controllers/auth.controller.js"
-import { getReceipt, postTransactions } from "./controllers/receipts.controller.js";
+import router from "./routers/index.router.js";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-app.post("/register", postRegistration);
-
-app.post("/login", postLogin);
-
-app.get("/receipt", getReceipt)
-
-app.post("/transactions", postTransactions)
+app.use(router);
 
 app.listen(5000);

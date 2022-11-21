@@ -1,19 +1,8 @@
-import { loginScheme } from "../models/login.model.js";
-import { regisScheme } from "../models/registration.model.js";
 import { connectToDb } from "../database/db.js";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 
 export async function postLogin(req, res) {
-	const userInformation = req.body;
-	const validation = loginScheme.validate(userInformation, {
-		abortEarly: false,
-	});
-	if (validation.error) {
-		const errors = validation.error.details.map((e) => e.message);
-		res.status(422).send(errors);
-	}
-
 	try {
 		const user = await connectToDb
 			.collection("users")
@@ -46,20 +35,7 @@ export async function postLogin(req, res) {
 export async function postRegistration(req, res) {
 	const userInformation = req.body;
 	const passwordHash = bcrypt.hashSync(userInformation.password, 10);
-	const validation = regisScheme.validate(userInformation, {
-		abortEarly: false,
-	});
 	try {
-		if (validation.error) {
-			const errors = validation.error.details.map((e) => e.message);
-			return res.status(422).send(errors);
-		}
-		if (userInformation.password !== userInformation.confirmPassword) {
-			res
-				.status(422)
-				.send({ message: "Password & Confirm Password do not match" });
-			return;
-		}
 		const usedEmail = await connectToDb
 			.collection("users")
 			.findOne({ email: userInformation.email });
