@@ -6,28 +6,27 @@ export async function postLogin(req, res) {
 	const userInformation = req.body;
 	try {
 		const user = await connectToDb
-		.collection("users")
-		.findOne({ email: userInformation.email });
+			.collection("users")
+			.findOne({ email: userInformation.email });
 		if (!user) {
 			return res.status(401).send({ message: "This email is not registered" });
 		}
-		if (user && bcrypt.compareSync(userInformation.password, user.password)) {
-			const userSession = await connectToDb
-			.collection("sessions")
-			.findOne({ userId: user._id });
-			if (userSession) {
-				return res.status(201).send({ message: "Logged in", token: userSession.token, user });
-			} else {
-				const token = uuid();
-				await connectToDb.collection("sessions").insertOne({
-					userId: user._id,
-					token,
-				});
-				return res.status(201).send({ message: "Logged in", token: userSession.token, user });
-			}
-		} else {
+		if (!bcrypt.compareSync(userInformation.password, user.password)) {
 			return res.status(401).send({ message: "Password doesn't match" });
 		}
+		const userSession = await connectToDb
+			.collection("sessions")
+			.findOne({ userId: user._id });
+		if (!userSession) {
+			const token = uuid();
+			await connectToDb.collection("sessions").insertOne({
+				userId: user._id,
+				token,
+			});
+		}
+		return res
+			.status(201)
+			.send({ message: "Logged in", token: userSession.token, user });
 	} catch (error) {
 		res.send(error);
 	}
