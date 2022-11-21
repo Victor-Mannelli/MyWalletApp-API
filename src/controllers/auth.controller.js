@@ -3,17 +3,18 @@ import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 
 export async function postLogin(req, res) {
+	const userInformation = req.body;
 	try {
 		const user = await connectToDb
-			.collection("users")
-			.findOne({ email: userInformation.email });
+		.collection("users")
+		.findOne({ email: userInformation.email });
 		if (!user) {
 			return res.status(401).send({ message: "This email is not registered" });
 		}
 		if (user && bcrypt.compareSync(userInformation.password, user.password)) {
 			const userSession = await connectToDb
-				.collection("sessions")
-				.findOne({ userId: user._id });
+			.collection("sessions")
+			.findOne({ userId: user._id });
 			if (userSession) {
 				return res.status(201).send({ message: "Logged in", token: userSession.token, user });
 			} else {
@@ -22,8 +23,7 @@ export async function postLogin(req, res) {
 					userId: user._id,
 					token,
 				});
-
-				return res.status(201).send({ message: "Logged in", token, user });
+				return res.status(201).send({ message: "Logged in", token: userSession.token, user });
 			}
 		} else {
 			return res.status(401).send({ message: "Password doesn't match" });
